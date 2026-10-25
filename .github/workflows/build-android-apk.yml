@@ -23,13 +23,30 @@ jobs:
 
       - name: Install required Android SDK 34 tools
         run: |
+          set -eu
           sdkmanager --sdk_root="$ANDROID_HOME" "platform-tools" "platforms;android-34" "build-tools;34.0.0"
           test -f "$ANDROID_HOME/build-tools/34.0.0/apksigner"
 
+      - name: Install Godot export templates in GitHub runner HOME
+        run: |
+          set -eu
+          # The Godot Docker image stores its templates under /root,
+          # but GitHub Actions runs Godot with HOME=/github/home.
+          TEMPLATES_SOURCE=/root/.local/share/godot/export_templates/4.3.stable
+          TEMPLATES_TARGET="$HOME/.local/share/godot/export_templates/4.3.stable"
+          mkdir -p "$TEMPLATES_TARGET" "$HOME/.config/godot"
+          cp -a "$TEMPLATES_SOURCE/." "$TEMPLATES_TARGET/"
+          if [ -d /root/.config/godot ]; then
+            cp -a /root/.config/godot/. "$HOME/.config/godot/"
+          fi
+          test -s "$TEMPLATES_TARGET/android_debug.apk"
+          test -s "$TEMPLATES_TARGET/android_release.apk"
+          echo "Godot Android export templates installed under $TEMPLATES_TARGET"
+
       - name: Verify Godot and project
         run: |
+          set -eu
           godot --version
-          test -f /root/.local/share/godot/export_templates/4.3.stable/android_debug.apk
           test -f /root/debug.keystore
           test -f RightHandDriveAcademy_v0.2_Android_Source/RightHandDriveAcademy_v02/project.godot
 
@@ -39,6 +56,7 @@ jobs:
           GODOT_ANDROID_KEYSTORE_DEBUG_USER: androiddebugkey
           GODOT_ANDROID_KEYSTORE_DEBUG_PASSWORD: android
         run: |
+          set -eu
           mkdir -p build
           godot --headless --path RightHandDriveAcademy_v0.2_Android_Source/RightHandDriveAcademy_v02 --editor --import --quit
           godot --headless --path RightHandDriveAcademy_v0.2_Android_Source/RightHandDriveAcademy_v02 --export-debug "Android" "$GITHUB_WORKSPACE/build/RightHandDriveAcademy.apk"
