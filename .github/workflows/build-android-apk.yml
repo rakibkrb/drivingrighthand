@@ -5,25 +5,33 @@ on:
   push:
     branches: [main]
 
+permissions:
+  contents: read
+
 jobs:
   build:
     runs-on: ubuntu-24.04
-
     container:
       image: barichello/godot-ci:4.3
-
+    env:
+      ANDROID_HOME: /usr/lib/android-sdk
+      ANDROID_SDK_ROOT: /usr/lib/android-sdk
+      JAVA_HOME: /usr/lib/jvm/java-17-openjdk-amd64
     steps:
       - name: Checkout Project
         uses: actions/checkout@v4
 
-      - name: Setup Godot
+      - name: Install required Android SDK 34 tools
         run: |
-          mkdir -p "$HOME/.local/share/godot/export_templates"
-          mkdir -p "$HOME/.config/godot"
-          if [ "$HOME" != /root ]; then
-            cp -a /root/.local/share/godot/export_templates/4.3.stable "$HOME/.local/share/godot/export_templates/"
-            cp -a /root/.config/godot/. "$HOME/.config/godot/"
-          fi
+          sdkmanager --sdk_root="$ANDROID_HOME" "platform-tools" "platforms;android-34" "build-tools;34.0.0"
+          test -f "$ANDROID_HOME/build-tools/34.0.0/apksigner"
+
+      - name: Verify Godot and project
+        run: |
+          godot --version
+          test -f /root/.local/share/godot/export_templates/4.3.stable/android_debug.apk
+          test -f /root/debug.keystore
+          test -f RightHandDriveAcademy_v0.2_Android_Source/RightHandDriveAcademy_v02/project.godot
 
       - name: Build Android APK
         env:
@@ -34,10 +42,11 @@ jobs:
           mkdir -p build
           godot --headless --path RightHandDriveAcademy_v0.2_Android_Source/RightHandDriveAcademy_v02 --editor --import --quit
           godot --headless --path RightHandDriveAcademy_v0.2_Android_Source/RightHandDriveAcademy_v02 --export-debug "Android" "$GITHUB_WORKSPACE/build/RightHandDriveAcademy.apk"
+          test -s "$GITHUB_WORKSPACE/build/RightHandDriveAcademy.apk"
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: RightHandDriveAcademy-APK
-          path: build/*.apk
+          path: build/RightHandDriveAcademy.apk
           if-no-files-found: error
