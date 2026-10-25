@@ -1,0 +1,24 @@
+; Right-Hand Drive Academy — offline Android driving trainer prototype.
+config_version=5
+
+[application]
+config/name="Right-Hand Drive Academy"
+run/main_scene="res://main.tscn"
+config/features=PackedStringArray("4.3", "GL Compatibility")
+config/description="Offline 3D learner driving game: 900-degree touch steering, functional side mirror cameras, indicators, handbrake, rear sensors, AI traffic and RHD dashboard."
+config/icon="res://assets/icon.png"
+
+[display]
+window/size/viewport_width=1280
+window/size/viewport_height=720
+window/stretch/mode="canvas_items"
+window/handheld/orientation=0
+window/energy_saving/keep_screen_on=true
+
+[rendering]
+renderer/rendering_method="gl_compatibility"
+renderer/rendering_method.mobile="gl_compatibility"
+textures/default_filters/use_nearest_mipmap_filter=false
+
+[physics]
+common/physics_ticks_per_second=60
