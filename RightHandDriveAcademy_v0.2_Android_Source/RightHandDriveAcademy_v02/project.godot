@@ -18,7 +18,7 @@ window/energy_saving/keep_screen_on=true
 [rendering]
 renderer/rendering_method="gl_compatibility"
 renderer/rendering_method.mobile="gl_compatibility"
+textures/vram_compression/import_etc2_astc=true
 textures/default_filters/use_nearest_mipmap_filter=false
-
 [physics]
 common/physics_ticks_per_second=60
