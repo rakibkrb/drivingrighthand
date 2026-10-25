@@ -1,1 +1,43 @@
+name: Build Android APK
 
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+
+    container:
+      image: barichello/godot-ci:4.3
+
+    steps:
+      - name: Checkout Project
+        uses: actions/checkout@v4
+
+      - name: Setup Godot
+        run: |
+          mkdir -p "$HOME/.local/share/godot/export_templates"
+          mkdir -p "$HOME/.config/godot"
+          if [ "$HOME" != /root ]; then
+            cp -a /root/.local/share/godot/export_templates/4.3.stable "$HOME/.local/share/godot/export_templates/"
+            cp -a /root/.config/godot/. "$HOME/.config/godot/"
+          fi
+
+      - name: Build Android APK
+        env:
+          GODOT_ANDROID_KEYSTORE_DEBUG_PATH: /root/debug.keystore
+          GODOT_ANDROID_KEYSTORE_DEBUG_USER: androiddebugkey
+          GODOT_ANDROID_KEYSTORE_DEBUG_PASSWORD: android
+        run: |
+          mkdir -p build
+          godot --headless --path RightHandDriveAcademy_v0.2_Android_Source/RightHandDriveAcademy_v02 --editor --import --quit
+          godot --headless --path RightHandDriveAcademy_v0.2_Android_Source/RightHandDriveAcademy_v02 --export-debug "Android" "$GITHUB_WORKSPACE/build/RightHandDriveAcademy.apk"
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: RightHandDriveAcademy-APK
+          path: build/*.apk
+          if-no-files-found: error
